@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -21,6 +22,16 @@ func run() error {
 
 	address := crypto.PubkeyToAddress(privateKey.PublicKey).String()
 	fmt.Println(address)
+
+	data, err := json.Marshal(
+		struct{ Name string }{Name: "Jose"},
+	)
+
+	sig, err := crypto.Sign(crypto.Keccak256Hash(data).Bytes(), privateKey)
+	if err != nil {
+		return err
+	}
+	fmt.Println(sig)
 
 	return nil
 }
