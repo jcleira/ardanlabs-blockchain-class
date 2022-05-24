@@ -20,7 +20,6 @@ func run() error {
 	}
 
 	address := crypto.PubkeyToAddress(privateKey.PublicKey).String()
-
 	fmt.Println(address)
 
 	return nil
