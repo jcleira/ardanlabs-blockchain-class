@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,22 +41,24 @@ func sign() error {
 
 	// Hash the transaction data into a 32 byte array. This will provide
 	// a data length consistency with all transactions.
-	txHash := crypto.Keccak256(data)
+	txHash := crypto.Keccak256Hash(data)
 
 	// Sign the hash with the private key to produce a signature.
-	sig, err := crypto.Sign(txHash, privateKey)
+	sig, err := crypto.Sign(txHash.Bytes(), privateKey)
 	if err != nil {
 		return fmt.Errorf("sign: %w", err)
 	}
 
-	fmt.Println("SIG:", sig)
+	fmt.Printf("SIG: 0x%s\n", hex.EncodeToString(sig))
 
 	// =========================================================================
+	// NODE
 
+	// Passed with the sig
 	v2 := struct {
 		Name string
 	}{
-		Name: "Bill",
+		Name: "Billy",
 	}
 
 	data2, err := json.Marshal(v2)
@@ -65,15 +68,15 @@ func sign() error {
 
 	// Hash the transaction data into a 32 byte array. This will provide
 	// a data length consistency with all transactions.
-	txHash2 := crypto.Keccak256(data2)
+	txHash2 := crypto.Keccak256Hash(data2)
 
-	sigPublicKey, err := crypto.Ecrecover(txHash2, sig)
+	sigPublicKey, err := crypto.Ecrecover(txHash2.Bytes(), sig)
 	if err != nil {
 		return err
 	}
 
 	rs := sig[:crypto.RecoveryIDOffset]
-	if !crypto.VerifySignature(sig, txHash2, rs) {
+	if !crypto.VerifySignature(sigPublicKey, txHash2.Bytes(), rs) {
 		return errors.New("invalid signature")
 	}
 
