@@ -27,7 +27,7 @@ func run() error {
 		struct{ Name string }{Name: "Jose"},
 	)
 
-	sig, err := crypto.Sign(crypto.Keccak256Hash(data).Bytes(), privateKey)
+	sig, err := crypto.Sign(crypto.Keccak256(data), privateKey)
 	if err != nil {
 		return err
 	}
