@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -28,11 +30,22 @@ func run() error {
 		struct{ Name string }{Name: "Bill"},
 	)
 
-	sig, err := crypto.Sign(crypto.Keccak256(data), privateKey)
+	dataBytes := crypto.Keccak256(data)
+	sig, err := crypto.Sign(dataBytes, privateKey)
 	if err != nil {
 		return err
 	}
 	fmt.Println(sig)
+
+	sigPublicKey, err := crypto.Ecrecover(dataBytes, sig)
+	if err != nil {
+		return fmt.Errorf("ecrecover, %w", err)
+	}
+	x, y := elliptic.Unmarshal(crypto.S256(), sigPublicKey)
+	sigPublicKeyVal := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
+
+	recoveredAddress := crypto.PubkeyToAddress(sigPublicKeyVal).String()
+	fmt.Println(recoveredAddress)
 
 	return nil
 }
