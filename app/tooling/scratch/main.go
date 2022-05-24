@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 
@@ -26,26 +27,63 @@ func sign() error {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey).String()
 	fmt.Println(address)
 
-	data, err := json.Marshal(
-		struct{ Name string }{Name: "Bill"},
-	)
+	v := struct {
+		Name string
+	}{
+		Name: "Bill",
+	}
 
-	dataBytes := crypto.Keccak256(data)
-	sig, err := crypto.Sign(dataBytes, privateKey)
+	data, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
-	fmt.Println(sig)
 
-	sigPublicKey, err := crypto.Ecrecover(dataBytes, sig)
+	// Hash the transaction data into a 32 byte array. This will provide
+	// a data length consistency with all transactions.
+	txHash := crypto.Keccak256(data)
+
+	// Sign the hash with the private key to produce a signature.
+	sig, err := crypto.Sign(txHash, privateKey)
 	if err != nil {
-		return fmt.Errorf("ecrecover, %w", err)
+		return fmt.Errorf("sign: %w", err)
 	}
-	x, y := elliptic.Unmarshal(crypto.S256(), sigPublicKey)
-	sigPublicKeyVal := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
 
-	recoveredAddress := crypto.PubkeyToAddress(sigPublicKeyVal).String()
-	fmt.Println(recoveredAddress)
+	fmt.Println("SIG:", sig)
+
+	// =========================================================================
+
+	v2 := struct {
+		Name string
+	}{
+		Name: "Bill",
+	}
+
+	data2, err := json.Marshal(v2)
+	if err != nil {
+		return err
+	}
+
+	// Hash the transaction data into a 32 byte array. This will provide
+	// a data length consistency with all transactions.
+	txHash2 := crypto.Keccak256(data2)
+
+	sigPublicKey, err := crypto.Ecrecover(txHash2, sig)
+	if err != nil {
+		return err
+	}
+
+	rs := sig[:crypto.RecoveryIDOffset]
+	if !crypto.VerifySignature(sig, txHash2, rs) {
+		return errors.New("invalid signature")
+	}
+
+	// Capture the public key associated with this signature.
+	x, y := elliptic.Unmarshal(crypto.S256(), sigPublicKey)
+	publicKey := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
+
+	// Extract the account address from the public key.
+	address = crypto.PubkeyToAddress(publicKey).String()
+	fmt.Println(address)
 
 	return nil
 }
