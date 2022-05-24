@@ -15,16 +15,17 @@ func main() {
 }
 
 func run() error {
-	privateKey, err := crypto.GenerateKey()
+	path := fmt.Sprintf("%s%s.ecdsa", "zblock/accounts/", "kennedy")
+	privateKey, err := crypto.LoadECDSA(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to load private key for node: %w", err)
 	}
 
 	address := crypto.PubkeyToAddress(privateKey.PublicKey).String()
 	fmt.Println(address)
 
 	data, err := json.Marshal(
-		struct{ Name string }{Name: "Jose"},
+		struct{ Name string }{Name: "Bill"},
 	)
 
 	sig, err := crypto.Sign(crypto.Keccak256(data), privateKey)
