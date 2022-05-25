@@ -1,3 +1,4 @@
+// Package mempool maintains the mempool for the blockchain.
 package mempool
 
 import (
@@ -17,17 +18,11 @@ type Mempool struct {
 
 // New constructs a new mempool using the default sort strategy.
 func New() (*Mempool, error) {
-	return &Mempool{
+	m := Mempool{
 		pool: make(map[string]database.BlockTx),
-	}, nil
-}
+	}
 
-// Count returns the current number of transaction in the pool.
-func (mp *Mempool) Count() int {
-	mp.mu.RLock()
-	defer mp.mu.RUnlock()
-
-	return len(mp.pool)
+	return &m, nil
 }
 
 // Upsert adds or replaces a transaction from the mempool.
@@ -78,12 +73,11 @@ func (mp *Mempool) Delete(tx database.BlockTx) error {
 
 // PickBest uses the configured sort strategy to return a set of transactions.
 // If 0 is passed, all transactions in the mempool will be returned.
-func (mp *Mempool) PickBest() []database.BlockTx {
+func (mp *Mempool) PickBest(howMany ...uint16) []database.BlockTx {
 	mp.mu.RLock()
 	defer mp.mu.RUnlock()
 
 	var txs []database.BlockTx
-
 	for _, tx := range mp.pool {
 		txs = append(txs, tx)
 	}

@@ -39,9 +39,18 @@ github.com/go-playground/validator/v10/translations/en
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
+# github.com/inconshreveable/mousetrap v1.0.0
+## explicit
+github.com/inconshreveable/mousetrap
 # github.com/leodido/go-urn v1.2.1
 ## explicit; go 1.13
 github.com/leodido/go-urn
+# github.com/spf13/cobra v0.0.3
+## explicit
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.3
+## explicit
+github.com/spf13/pflag
 # go.uber.org/atomic v1.7.0
 ## explicit; go 1.13
 go.uber.org/atomic
