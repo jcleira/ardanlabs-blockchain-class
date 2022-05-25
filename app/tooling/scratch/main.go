@@ -19,14 +19,39 @@ import (
 // https://goethereumbook.org/signature-verify/
 
 func main() {
-	err := writeBlock()
+	/* Commenting so we can validate the written block.
+	if err := writeBlock(); err != nil {
+		log.Fatalln(err)
+	}
+	*/
 
-	if err != nil {
+	if err := readBlock(); err != nil {
 		log.Fatalln(err)
 	}
 }
 
 func readBlock() error {
+	d, err := disk.New("zblock/miner1")
+	if err != nil {
+		return err
+	}
+
+	blockData, err := d.GetBlock(1)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(blockData.Header.TransRoot)
+	block, err := database.ToBlock(blockData)
+	if err != nil {
+		return nil
+	}
+
+	if blockData.Header.TransRoot != block.MerkleTree.RootHex() {
+		return errors.New("merkle tree wrong")
+	}
+
+	fmt.Println(block.MerkleTree.RootHex())
 
 	return nil
 }
